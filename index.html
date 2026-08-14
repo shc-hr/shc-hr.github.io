@@ -18,6 +18,7 @@
   --s1:#2a78d6; --s2:#eb6834;
   --line:#4a3aa7; --line-fill:rgba(74,58,167,.14);
   --pos:#2a78d6; --neg:#e34948; --neutral:#e6e5e1;
+  --e1:#2a78d6; --e2:#eb6834; --e3:#1baf7a; --e4:#eda100; --e5:#e87ba4; --e6:#008300;
   --seq-1:#cde2fb; --seq-2:#9ec5f4; --seq-3:#6da7ec; --seq-4:#3987e5; --seq-5:#256abf; --seq-6:#184f95;
   --holiday:#efe7c8; --holiday-ink:#7a6410;
   --shadow:0 1px 2px rgba(11,11,11,.05),0 8px 24px rgba(11,11,11,.06);
@@ -33,6 +34,7 @@
   --s1:#3987e5; --s2:#d95926;
   --line:#9085e9; --line-fill:rgba(144,133,233,.18);
   --pos:#3987e5; --neg:#e66767; --neutral:#33332f;
+  --e1:#3987e5; --e2:#d95926; --e3:#199e70; --e4:#c98500; --e5:#d55181; --e6:#008300;
   --seq-1:#184f95; --seq-2:#256abf; --seq-3:#2a78d6; --seq-4:#3987e5; --seq-5:#6da7ec; --seq-6:#9ec5f4;
   --holiday:#3a3320; --holiday-ink:#e0cd8a;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
@@ -174,6 +176,28 @@ table.dt tbody tr:hover td{background:var(--surface-2)}
 .empty-state .es-t{display:block;color:var(--text-primary);font-size:16px;font-weight:750;margin-bottom:8px;letter-spacing:-.02em}
 .empty-state .wrap{display:block;max-width:560px;margin:0 auto}
 .empty-state b{color:var(--text-secondary);font-weight:700}
+.donuts{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.dunit{display:flex;gap:16px;align-items:center;flex:1;min-width:290px;
+  border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface-2)}
+.dunit .dt2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:9px}
+.dleg{display:flex;flex-direction:column;gap:7px;min-width:0}
+.dleg .li{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-secondary);white-space:nowrap}
+.dleg .li b{color:var(--text-primary);font-weight:750;margin-left:auto;padding-left:12px;font-variant-numeric:tabular-nums}
+.dleg .li s{text-decoration:none;color:var(--text-muted);font-variant-numeric:tabular-nums;width:44px;text-align:right}
+.shr{display:flex;width:100%;height:34px;border-radius:8px;overflow:hidden;gap:2px;background:var(--surface-2)}
+.shr div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:750;color:#fff;
+  min-width:2px;transition:.2s;cursor:default}
+.shr div.zero{background:var(--neutral)!important;color:var(--text-muted)}
+.gcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+@media(max-width:760px){.gcards{grid-template-columns:1fr}}
+.gcard{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface-2)}
+.gcard .gh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:750;color:var(--text-primary)}
+.gcard .gv{font-size:27px;font-weight:800;letter-spacing:-.03em;margin:8px 0 2px;line-height:1}
+.gcard .gs{font-size:11.5px;color:var(--text-muted);line-height:1.5}
+.gbar{height:7px;border-radius:4px;background:var(--neutral);overflow:hidden;margin:9px 0 8px}
+.gbar i{display:block;height:100%;border-radius:4px}
+.dot{width:10px;height:10px;border-radius:3px;flex:none;display:inline-block}
+.tag.mute{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)}
 .cal-month{margin-bottom:10px}
 .cal-name{font-size:11.5px;font-weight:700;color:var(--text-secondary);margin-bottom:5px}
 #modal{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;
@@ -358,6 +382,8 @@ const I18N = {
   pubHint:'Setelah OK, data ini dikirim ke server dan akan terlihat oleh semua orang yang membuka dashboard, di perangkat mana pun.',
   pubBy:'Nama PIC (opsional)', pubKey:'Update key', cfOkPub:'OK, publish',
   pubSending:'Mengirim data ke server…',
+  autoNew:by=>`Data baru diterima${by?' dari '+by:''} — tampilan sudah diperbarui.`,
+  noNew:'Sudah versi terbaru.',
   pubOk:'Data berhasil dipublikasikan. Semua orang yang membuka dashboard akan melihat data ini.',
   pubBadKey:'Update key salah — data hanya tampil di browser ini, tidak terkirim ke server.',
   pubFail:m=>`Gagal mengirim ke server (${m}). Data hanya tampil di browser ini.`,
@@ -365,6 +391,17 @@ const I18N = {
   srcEmbedded:'Sumber: <b>data tertanam</b> di file ini',
   srcPreview:'Sumber: <b>file lokal</b> (pratinjau, belum tersimpan di server)',
   impWait:'Membaca file Excel…', impCancel:'Impor dibatalkan. Data lama tetap dipakai.',
+  unitPpl:'orang', gPortion:'Porsi', gPortionSub:d=>`Pembagian jumlah karyawan grup per ${d}.`,
+  gByEnt:'Per entitas', gByCat:'Per kategori',
+  gMonthly:'Ringkasan bulanan grup', gMonthlySub:'Rata-rata dan akhir bulan, beserta pergerakan karyawan tiap bulan.',
+  thMonth:'Bulan', thAvg:'Rata-rata', thEnd:'Akhir bulan', thIn:'Masuk', thOut:'Keluar', thNet:'Net',
+  gShare:'Detail per entitas', gShareSub:d=>`Angka, porsi, dan status pengisian tiap entitas per ${d}.`,
+  gThEnt:'Entitas', gThCount:'Jumlah', gThShare:'Porsi', gThChg:'Perubahan periode', gThStatus:'Status',
+  gHasData:'ada data', gNoData:'belum diisi',
+  gTrend:'Perbandingan antar entitas', gTrendSub:'Jumlah karyawan tiap entitas sepanjang periode terpilih.',
+  gTrendOne:e=>`Baru <b>${e}</b> yang memiliki angka. Grafik perbandingan akan muncul otomatis begitu entitas lain mulai mengisi datanya.`,
+  gSplit:'SHG vs CSTG', gSplitSub:'Pembagian total grup ke dua sub-grup.',
+  gOf:(a,b)=>`${a} dari ${b} orang`, gMembers:'Anggota', gEmptyEnt:n=>`${n} entitas belum diisi`,
   cfTitle:'Konfirmasi impor data', cfSub:f=>`File: <b>${f}</b><br>Periksa perbandingan di bawah, lalu klik OK untuk mengganti data dashboard.`,
   cfItem:'Item', cfBefore:'Sebelum', cfAfter:'Sesudah',
   cfYears:'Sheet / tahun', cfPeriod:'Periode data', cfLast:'Jumlah karyawan terakhir',
@@ -427,6 +464,8 @@ const I18N = {
   pubHint:'After you click OK, this data is sent to the server and will be visible to everyone who opens the dashboard, on any device.',
   pubBy:'PIC name (optional)', pubKey:'Update key', cfOkPub:'OK, publish',
   pubSending:'Sending data to the server…',
+  autoNew:by=>`New data received${by?' from '+by:''} — the view has been refreshed.`,
+  noNew:'Already up to date.',
   pubOk:'Published. Everyone who opens the dashboard will now see this data.',
   pubBadKey:'Wrong update key — the data is shown in this browser only and was not sent to the server.',
   pubFail:m=>`Could not reach the server (${m}). The data is shown in this browser only.`,
@@ -434,6 +473,17 @@ const I18N = {
   srcEmbedded:'Source: <b>data embedded</b> in this file',
   srcPreview:'Source: <b>local file</b> (preview only, not saved to the server)',
   impWait:'Reading the Excel file…', impCancel:'Import cancelled. The previous data is still in use.',
+  unitPpl:'people', gPortion:'Breakdown', gPortionSub:d=>`How the group headcount splits as of ${d}.`,
+  gByEnt:'By entity', gByCat:'By category',
+  gMonthly:'Group monthly summary', gMonthlySub:'Average and end-of-month headcount, with the movement each month.',
+  thMonth:'Month', thAvg:'Average', thEnd:'End of month', thIn:'Joined', thOut:'Left', thNet:'Net',
+  gShare:'Entity detail', gShareSub:d=>`Headcount, share and data status per entity as of ${d}.`,
+  gThEnt:'Entity', gThCount:'Headcount', gThShare:'Share', gThChg:'Change in period', gThStatus:'Status',
+  gHasData:'has data', gNoData:'not filled',
+  gTrend:'Entity comparison', gTrendSub:'Headcount per entity across the selected period.',
+  gTrendOne:e=>`Only <b>${e}</b> has figures so far. The comparison chart appears automatically once other entities start filling in their rows.`,
+  gSplit:'SHG vs CSTG', gSplitSub:'How the group total splits across the two sub-groups.',
+  gOf:(a,b)=>`${a} of ${b} people`, gMembers:'Members', gEmptyEnt:n=>`${n} entities not filled`,
   cfTitle:'Confirm data import', cfSub:f=>`File: <b>${f}</b><br>Check the comparison below, then click OK to replace the dashboard data.`,
   cfItem:'Item', cfBefore:'Before', cfAfter:'After',
   cfYears:'Sheets / years', cfPeriod:'Data period', cfLast:'Latest headcount',
@@ -496,6 +546,8 @@ const I18N = {
   pubHint:'확인을 누르면 이 데이터가 서버로 전송되어, 어떤 기기에서든 대시보드를 여는 모든 사람에게 반영됩니다.',
   pubBy:'담당자 이름 (선택)', pubKey:'업데이트 키', cfOkPub:'확인, 게시',
   pubSending:'서버로 전송 중…',
+  autoNew:by=>`새 데이터를 받았습니다${by?' ('+by+')':''} — 화면이 갱신되었습니다.`,
+  noNew:'이미 최신 버전입니다.',
   pubOk:'게시되었습니다. 대시보드를 여는 모든 사람에게 이 데이터가 표시됩니다.',
   pubBadKey:'업데이트 키가 올바르지 않습니다 — 이 브라우저에만 표시되며 서버로 전송되지 않았습니다.',
   pubFail:m=>`서버 전송 실패 (${m}). 이 브라우저에만 표시됩니다.`,
@@ -503,6 +555,17 @@ const I18N = {
   srcEmbedded:'출처: 이 파일에 <b>포함된 데이터</b>',
   srcPreview:'출처: <b>로컬 파일</b> (미리보기, 서버에 저장되지 않음)',
   impWait:'엑셀 파일을 읽는 중…', impCancel:'가져오기가 취소되었습니다. 기존 데이터를 계속 사용합니다.',
+  unitPpl:'명', gPortion:'구성 비중', gPortionSub:d=>`${d} 기준 그룹 인원 구성.`,
+  gByEnt:'법인별', gByCat:'카테고리별',
+  gMonthly:'그룹 월별 요약', gMonthlySub:'월 평균·월말 인원과 월별 인원 이동.',
+  thMonth:'월', thAvg:'평균', thEnd:'월말', thIn:'입사', thOut:'퇴사', thNet:'순증',
+  gShare:'법인별 상세', gShareSub:d=>`${d} 기준 법인별 인원·비중·입력 상태.`,
+  gThEnt:'법인', gThCount:'인원', gThShare:'비중', gThChg:'기간 증감', gThStatus:'상태',
+  gHasData:'데이터 있음', gNoData:'미입력',
+  gTrend:'법인별 비교', gTrendSub:'선택 기간 동안 법인별 인원 추이.',
+  gTrendOne:e=>`현재 <b>${e}</b>만 수치가 있습니다. 다른 법인이 입력을 시작하면 비교 그래프가 자동으로 표시됩니다.`,
+  gSplit:'SHG vs CSTG', gSplitSub:'그룹 전체 인원의 두 하위 그룹 배분.',
+  gOf:(a,b)=>`${b}명 중 ${a}명`, gMembers:'구성', gEmptyEnt:n=>`미입력 ${n}개 법인`,
   cfTitle:'데이터 가져오기 확인', cfSub:f=>`파일: <b>${f}</b><br>아래 비교 내용을 확인한 후 OK를 누르면 대시보드 데이터가 교체됩니다.`,
   cfItem:'항목', cfBefore:'변경 전', cfAfter:'변경 후',
   cfYears:'시트 / 연도', cfPeriod:'데이터 기간', cfLast:'최근 인원',
@@ -626,6 +689,7 @@ async function init(){
   buildControls(); paint();
   const ok=await loadRemote();
   if(ok){ buildControls(); paint(); }
+  startPolling();
 }
 
 function buildControls(){
@@ -686,6 +750,13 @@ function paint(){
     return;
   }
   c.appendChild(kpiRow(valid));
+  if(ENT==='SHG+CSTG'){
+    c.appendChild(cardPortion(valid));
+    c.appendChild(cardShare(valid));
+    c.appendChild(cardSplit(valid));
+    c.appendChild(cardTrend());
+    c.appendChild(cardMonthly(valid));
+  }
   c.appendChild(chartHeadcount(rows,valid));
   const g=el('div',{class:'grid g2'});
   g.appendChild(chartDelta(valid)); g.appendChild(chartFlow(valid));
@@ -907,6 +978,212 @@ function chartComposition(valid){
   });
   const last=agg.filter(a=>a.tot>0).pop();
   card.appendChild(el('figure',{},svg,el('figcaption',{},last?t.c4cap(T().months[last.m],keys.map(k=>`${partLabel(k)} ${dec(last.vals[k])}`).join(' · ')):'')));
+  return card;
+}
+
+/* ================= GROUP VIEW (SHG+CSTG) ================= */
+const LEAF=['SHI','SHV','SHC','CSTI','CSTV','CSTC'];
+const ECOL=e=>`var(--e${LEAF.indexOf(e)+1})`;
+
+function entStats(name){
+  const sr=D().series[name]; if(!sr) return null;
+  const out={name,first:null,last:null,lastDate:null,days:0};
+  D().dates.forEach((ds,i)=>{
+    const m=+ds.slice(5,7)-1; if(m<M0||m>M1) return;
+    const v=sr.total[i]; if(!has(v)) return;
+    if(out.first===null) out.first=v;
+    out.last=v; out.lastDate=ds; out.days++;
+  });
+  return out;
+}
+
+function donutSvg(items, size, thick){
+  const total=items.reduce((a,b)=>a+b.value,0);
+  const r=(size-thick)/2, cx=size/2, cy=size/2, ro=r+thick/2, ri=r-thick/2;
+  const svg=S('svg',{viewBox:`0 0 ${size} ${size}`,style:`width:${size}px;height:${size}px;flex:none`,role:'img'});
+  const nz=items.filter(i=>i.value>0);
+  const ring=(col,op)=>S('circle',{cx,cy,r,fill:'none',stroke:col,'stroke-width':thick,opacity:op||'1'});
+  if(!nz.length){ svg.appendChild(ring('var(--neutral)')); }
+  else if(nz.length===1){ svg.appendChild(ring(nz[0].color)); attachTT(svg.lastChild,nz[0],total); }
+  else {
+    const gap=Math.min(0.06, 0.6/nz.length);
+    let a=-Math.PI/2;
+    nz.forEach(it=>{
+      const span=it.value/total*Math.PI*2;
+      const a0=a+gap/2, a1=a+span-gap/2; a+=span;
+      if(a1<=a0) return;
+      const P=(ang,rad)=>`${(cx+rad*Math.cos(ang)).toFixed(2)},${(cy+rad*Math.sin(ang)).toFixed(2)}`;
+      const lg=(a1-a0)>Math.PI?1:0;
+      const path=S('path',{d:`M ${P(a0,ro)} A ${ro} ${ro} 0 ${lg} 1 ${P(a1,ro)} L ${P(a1,ri)} A ${ri} ${ri} 0 ${lg} 0 ${P(a0,ri)} Z`,
+        fill:it.color,style:'cursor:pointer'});
+      attachTT(path,it,total); svg.appendChild(path);
+    });
+  }
+  svg.appendChild(S('text',{x:cx,y:cy+2,'text-anchor':'middle',
+    style:'font-size:26px;font-weight:800;fill:var(--text-primary);letter-spacing:-.03em'},String(total)));
+  svg.appendChild(S('text',{x:cx,y:cy+20,'text-anchor':'middle',class:'tick'},T().unitPpl));
+  return svg;
+}
+function attachTT(node,it,total){
+  node.addEventListener('pointermove',ev=>showTT(ev.clientX,ev.clientY,
+    `<div class="tt-d">${it.label}</div>`+
+    `<div class="tr"><span class="dot" style="background:${it.color}"></span>${T().ttHead}<b>${it.value}</b></div>`+
+    `<div class="tr">${T().gThShare}<b>${(total?it.value/total*100:0).toFixed(1).replace('.',LANG==='id'?',':'.')}%</b></div>`));
+  node.addEventListener('pointerleave',hideTT);
+}
+function legendList(items,total){
+  const box=el('div',{class:'dleg'});
+  items.forEach(it=>box.appendChild(el('div',{class:'li'},
+    el('span',{class:'dot',style:`background:${it.value>0?it.color:'var(--neutral)'}`}),
+    it.label, el('b',{},String(it.value)),
+    el('s',{},(total?it.value/total*100:0).toFixed(0)+'%'))));
+  return box;
+}
+
+function cardPortion(valid){
+  const t=T(), card=el('div',{class:'card'});
+  const last=valid[valid.length-1], total=last.v;
+  card.appendChild(el('div',{class:'card-head'},
+    el('div',{},el('h2',{},t.gPortion),el('div',{class:'sub'},t.gPortionSub(dLabel(last.date))))));
+  const entItems=LEAF.map(n=>{const x=entStats(n); return {label:n,value:x&&x.last!=null?x.last:0,color:ECOL(n)};});
+  const keys=Object.keys(D().series[ENT].parts).filter(k=>has(last.parts[k]));
+  const catItems=keys.map((k,i)=>({label:partLabel(k),value:last.parts[k],color:`var(--s${i+1})`}));
+  const row=el('div',{class:'donuts'});
+  row.appendChild(el('div',{class:'dunit'},
+    donutSvg(entItems,168,32),
+    el('div',{style:'min-width:0'},el('div',{class:'dt2'},t.gByEnt),legendList(entItems,total))));
+  if(catItems.length) row.appendChild(el('div',{class:'dunit'},
+    donutSvg(catItems,168,32),
+    el('div',{style:'min-width:0'},el('div',{class:'dt2'},t.gByCat),
+      legendList(catItems,catItems.reduce((a,b)=>a+b.value,0)))));
+  card.appendChild(row);
+  return card;
+}
+
+function cardMonthly(valid){
+  const t=T(), card=el('div',{class:'card'});
+  card.appendChild(el('div',{class:'card-head'},
+    el('div',{},el('h2',{},t.gMonthly),el('div',{class:'sub'},t.gMonthlySub))));
+  const wrap=el('div',{class:'scroll',style:'max-height:none'}), tb=el('table',{class:'dt'});
+  const cg=el('colgroup',{}); ['22%','16%','18%','14%','14%','16%'].forEach(w=>cg.appendChild(el('col',{style:'width:'+w})));
+  tb.appendChild(cg);
+  tb.appendChild(el('thead',{},el('tr',{},el('th',{},t.thMonth),el('th',{class:'thr'},t.thAvg),
+    el('th',{class:'thr'},t.thEnd),el('th',{class:'thr'},t.thIn),el('th',{class:'thr'},t.thOut),el('th',{class:'thr'},t.thNet))));
+  const body=el('tbody',{});
+  for(let m=M0;m<=M1;m++){
+    const rs=valid.filter(r=>r.m===m);
+    const evs=D().events.filter(e=>+e.date.slice(5,7)-1===m);
+    const inN=evs.filter(e=>e.type==='in').reduce((a,b)=>a+b.count,0);
+    const outN=evs.filter(e=>e.type==='out').reduce((a,b)=>a+b.count,0);
+    const net=inN-outN;
+    body.appendChild(el('tr',{},
+      el('td',{class:'dt-date'},t.months[m]),
+      el('td',{class:'dt-num'},rs.length?dec(rs.reduce((a,b)=>a+b.v,0)/rs.length):'–'),
+      el('td',{class:'dt-num'},rs.length?String(rs[rs.length-1].v):'–'),
+      el('td',{class:'dt-num',style:inN?'color:var(--s1)':''},inN?'▲'+inN:'–'),
+      el('td',{class:'dt-num',style:outN?'color:var(--s2)':''},outN?'▼'+outN:'–'),
+      el('td',{class:'dt-num'},net?(net>0?'+':'')+net:'0')));
+  }
+  tb.appendChild(body); wrap.appendChild(tb); card.appendChild(wrap);
+  return card;
+}
+
+function cardShare(valid){
+  const t=T(), card=el('div',{class:'card'});
+  const last=valid[valid.length-1], total=last.v;
+  const st=LEAF.map(entStats).filter(Boolean);
+  const withData=st.filter(x=>x.last!=null);
+  card.appendChild(el('div',{class:'card-head'},
+    el('div',{},el('h2',{},t.gShare),el('div',{class:'sub'},t.gShareSub(dLabel(last.date)))),
+    el('div',{class:'spacer'})));
+
+
+  const wrap=el('div',{class:'scroll',style:'margin-top:14px;max-height:none'});
+  const tb=el('table',{class:'dt'});
+  const cg=el('colgroup',{}); ['24%','19%','19%','19%','19%'].forEach(w=>cg.appendChild(el('col',{style:'width:'+w})));
+  tb.appendChild(cg);
+  tb.appendChild(el('thead',{},el('tr',{},el('th',{},t.gThEnt),el('th',{class:'thr'},t.gThCount),
+    el('th',{class:'thr'},t.gThShare),el('th',{class:'thr'},t.gThChg),el('th',{},t.gThStatus))));
+  const body=el('tbody',{});
+  st.forEach(x=>{
+    const hasD=x.last!=null, pct=hasD&&total?x.last/total*100:0, chg=hasD?x.last-x.first:0;
+    body.appendChild(el('tr',{},
+      el('td',{class:'dt-date'},el('span',{class:'dot',style:`background:${hasD?ECOL(x.name):'var(--neutral)'};margin-right:8px;vertical-align:-1px`}),x.name),
+      el('td',{class:'dt-num'},hasD?String(x.last):'–'),
+      el('td',{class:'dt-num'},hasD?pct.toFixed(0)+'%':'–'),
+      el('td',{class:'dt-num',html:hasD?(chg>0?`<span class="tag up">▲ +${chg}</span>`:chg<0?`<span class="tag down">▼ ${chg}</span>`:`<span class="tag flat">${t.tagFlat}</span>`):'–'}),
+      el('td',{html:hasD?`<span class="badge in">${t.gHasData}</span>`:`<span class="badge note">${t.gNoData}</span>`})));
+  });
+  tb.appendChild(body); wrap.appendChild(tb); card.appendChild(wrap);
+  const empty=st.length-withData.length;
+  card.appendChild(el('figcaption',{},empty?t.gEmptyEnt(empty):''));
+  return card;
+}
+
+function cardTrend(){
+  const t=T(), card=el('div',{class:'card'});
+  const series=LEAF.map(name=>{
+    const sr=D().series[name]; if(!sr) return null;
+    const pts=[];
+    D().dates.forEach((ds,i)=>{ const m=+ds.slice(5,7)-1; if(m<M0||m>M1) return;
+      if(has(sr.total[i])) pts.push({i,v:sr.total[i],date:ds}); });
+    return pts.length?{name,pts}:null;
+  }).filter(Boolean);
+  card.appendChild(el('div',{class:'card-head'},
+    el('div',{},el('h2',{},t.gTrend),el('div',{class:'sub'},t.gTrendSub)),
+    el('div',{class:'spacer'}),
+    el('div',{class:'legend'},...series.map(x=>
+      el('span',{class:'lg'},el('span',{class:'dot',style:`background:${ECOL(x.name)}`}),x.name)))));
+  if(series.length<2){
+    card.appendChild(el('div',{class:'empty-state',style:'padding:30px 20px',
+      html:`<span class="wrap">${t.gTrendOne(series.length?series[0].name:'—')}</span>`}));
+    return card;
+  }
+  const idxs=[]; D().dates.forEach((ds,i)=>{const m=+ds.slice(5,7)-1; if(m>=M0&&m<=M1) idxs.push(i);});
+  const i0=idxs[0], i1=idxs[idxs.length-1];
+  const all=series.flatMap(x=>x.pts.map(p=>p.v));
+  let lo=Math.min(...all), hi=Math.max(...all);
+  const pad=Math.max(2,Math.round((hi-lo)*.25)); lo=Math.max(0,lo-pad); hi=hi+pad;
+  const W=960,H=300,PL=46,PR=52,PT=16,PB=36,w=W-PL-PR,h=H-PT-PB;
+  const X=i=>PL+(i1===i0?w/2:(i-i0)*w/(i1-i0));
+  const Y=v=>PT+h-(v-lo)/(hi-lo||1)*h;
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:'none',style:'height:300px',role:'img','aria-label':t.gTrend});
+  niceTicks(lo,hi,5).forEach(v=>{svg.appendChild(S('line',{x1:PL,x2:PL+w,y1:Y(v),y2:Y(v),class:'gl'}));
+    svg.appendChild(S('text',{x:PL-9,y:Y(v)+4,'text-anchor':'end',class:'tick'},String(v)));});
+  let pm=-1;
+  idxs.forEach(i=>{const m=+D().dates[i].slice(5,7)-1; if(m!==pm){pm=m;
+    svg.appendChild(S('line',{x1:X(i),x2:X(i),y1:PT,y2:PT+h,class:'gl'}));
+    svg.appendChild(S('text',{x:X(i),y:PT+h+20,'text-anchor':'middle',class:'tick'},t.mshort[m]));}});
+  svg.appendChild(S('line',{x1:PL,x2:PL+w,y1:PT+h,y2:PT+h,class:'axis-line'}));
+  series.forEach(x=>{
+    svg.appendChild(S('path',{d:'M '+x.pts.map(p=>`${X(p.i)},${Y(p.v)}`).join(' L '),fill:'none',
+      stroke:ECOL(x.name),'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+    const lp=x.pts[x.pts.length-1];
+    svg.appendChild(S('circle',{cx:X(lp.i),cy:Y(lp.v),r:4.5,fill:ECOL(x.name),stroke:'var(--surface-1)','stroke-width':2}));
+    svg.appendChild(S('text',{x:X(lp.i)+9,y:Y(lp.v)+4,class:'dlabel',style:`fill:${ECOL(x.name)}`},`${x.name} ${lp.v}`));
+  });
+  card.appendChild(el('figure',{},svg));
+  return card;
+}
+
+function cardSplit(valid){
+  const t=T(), card=el('div',{class:'card'});
+  const last=valid[valid.length-1], total=last.v;
+  card.appendChild(el('div',{class:'card-head'},
+    el('div',{},el('h2',{},t.gSplit),el('div',{class:'sub'},t.gSplitSub))));
+  const box=el('div',{class:'gcards'});
+  [['SHG',['SHI','SHV','SHC'],'var(--e1)'],['CSTG',['CSTI','CSTV','CSTC'],'var(--e4)']].forEach(([g,mem,col])=>{
+    const st=entStats(g), v=st&&st.last!=null?st.last:0;
+    const pct=total?v/total*100:0;
+    const has_=mem.filter(m=>{const x=entStats(m); return x&&x.last!=null;});
+    box.appendChild(el('div',{class:'gcard'},
+      el('div',{class:'gh'},el('span',{class:'dot',style:`background:${col}`}),g),
+      el('div',{class:'gv'},String(v)),
+      el('div',{class:'gbar'},el('i',{style:`width:${pct}%;background:${col}`})),
+      el('div',{class:'gs'},`${pct.toFixed(0)}% · ${t.gOf(v,total)}`),
+      el('div',{class:'gs',style:'margin-top:6px'},`${t.gMembers}: ${mem.join(', ')}${has_.length?' · '+has_.join(', ')+' '+t.gHasData:''}`)));
+  });
+  card.appendChild(box);
   return card;
 }
 
@@ -1223,6 +1500,36 @@ async function loadApi(){
     SRC={mode:'server', when: j.updatedAt?new Date(j.updatedAt):null, by: j.updatedBy||''};
     return true;
   }catch(e){ return false; }
+}
+let POLL=null, LAST_CHECK=0;
+function stamp(){ return SRC.when? new Date(SRC.when).toISOString() : ''; }
+async function checkUpdate(manual){
+  if(!API_URL) return false;
+  if(SRC.mode==='preview' && !manual) return false;
+  if(document.getElementById('modal').classList.contains('on')) return false;
+  const now=Date.now(); if(!manual && now-LAST_CHECK<20000) return false;
+  LAST_CHECK=now;
+  try{
+    const r=await fetch(API_URL,{cache:'no-store',redirect:'follow'});
+    if(!r.ok) return false;
+    const j=await r.json();
+    if(!j || !j.ok || !j.data) return false;
+    const fresh = j.updatedAt && j.updatedAt!==stamp();
+    if(!fresh) return false;
+    const names=Object.keys(j.data).sort(); if(!names.length) return false;
+    applyDatasets(j.data,names);
+    SRC={mode:'server', when:new Date(j.updatedAt), by:j.updatedBy||''};
+    buildControls(); paint();
+    toast(T().autoNew(SRC.by));
+    return true;
+  }catch(e){ return false; }
+}
+function startPolling(){
+  if(!API_URL) return;
+  if(POLL) clearInterval(POLL);
+  POLL=setInterval(()=>checkUpdate(false), 120000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(false); });
+  addEventListener('focus',()=>checkUpdate(false));
 }
 async function publishApi(payload){
   const r=await fetch(API_URL,{method:'POST',redirect:'follow',
