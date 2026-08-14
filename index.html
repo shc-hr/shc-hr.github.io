@@ -108,6 +108,8 @@ select.sel{font-size:13px;font-weight:600;padding:7px 11px;border-radius:9px;
   border:1px solid var(--border);background:var(--surface-2);color:var(--text-primary)}
 .rowsel{display:flex;gap:8px;align-items:center}
 .rowsel span{color:var(--text-muted);font-size:13px}
+.srcline{font-size:11px;color:var(--text-muted);margin-top:7px;text-align:right;line-height:1.4}
+.srcline b{color:var(--text-secondary);font-weight:650}
 
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
 .kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px 14px;box-shadow:var(--shadow)}
@@ -263,6 +265,7 @@ table.cmp tr:last-child td{border-bottom:0}
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0-12 4 4m-4-4-4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span id="impTxt"></span></button>
       <input type="file" id="impFile" accept=".xlsx,.xlsm" style="display:none">
+      <div class="srcline" id="srcLine"></div>
     </div>
   </section>
 
@@ -334,6 +337,9 @@ const I18N = {
   impOk:(f,n,s)=>`Berhasil impor "${f}" — ${n} sheet (${s}). Dashboard sudah diperbarui.`,
   impErr:m=>`Gagal membaca file: ${m}`,
   impNone:'File Excel tidak berisi sheet dengan format yang dikenali (baris SHG+CSTG / SHI dan baris tanggal).',
+  srcLive:d=>`Sumber: <b>data.xlsx</b> di server${d?' · diperbarui '+d:''}`,
+  srcEmbedded:'Sumber: <b>data tertanam</b> di file ini',
+  srcPreview:'Sumber: <b>file lokal</b> (pratinjau, belum tersimpan di server)',
   impWait:'Membaca file Excel…', impCancel:'Impor dibatalkan. Data lama tetap dipakai.',
   cfTitle:'Konfirmasi impor data', cfSub:f=>`File: <b>${f}</b><br>Periksa perbandingan di bawah, lalu klik OK untuk mengganti data dashboard.`,
   cfItem:'Item', cfBefore:'Sebelum', cfAfter:'Sesudah',
@@ -393,6 +399,9 @@ const I18N = {
   impOk:(f,n,s)=>`Imported "${f}" — ${n} sheet(s) (${s}). Dashboard updated.`,
   impErr:m=>`Could not read the file: ${m}`,
   impNone:'This workbook has no sheet in the expected format (an SHG+CSTG / SHI label column and a date row).',
+  srcLive:d=>`Source: <b>data.xlsx</b> on the server${d?' · updated '+d:''}`,
+  srcEmbedded:'Source: <b>data embedded</b> in this file',
+  srcPreview:'Source: <b>local file</b> (preview only, not saved to the server)',
   impWait:'Reading the Excel file…', impCancel:'Import cancelled. The previous data is still in use.',
   cfTitle:'Confirm data import', cfSub:f=>`File: <b>${f}</b><br>Check the comparison below, then click OK to replace the dashboard data.`,
   cfItem:'Item', cfBefore:'Before', cfAfter:'After',
@@ -452,6 +461,9 @@ const I18N = {
   impOk:(f,n,s)=>`"${f}" 가져오기 완료 — 시트 ${n}개 (${s}). 대시보드가 업데이트되었습니다.`,
   impErr:m=>`파일을 읽을 수 없습니다: ${m}`,
   impNone:'예상 형식(SHG+CSTG / SHI 라벨 열과 날짜 행)을 가진 시트를 찾지 못했습니다.',
+  srcLive:d=>`출처: 서버의 <b>data.xlsx</b>${d?' · '+d+' 갱신':''}`,
+  srcEmbedded:'출처: 이 파일에 <b>포함된 데이터</b>',
+  srcPreview:'출처: <b>로컬 파일</b> (미리보기, 서버에 저장되지 않음)',
   impWait:'엑셀 파일을 읽는 중…', impCancel:'가져오기가 취소되었습니다. 기존 데이터를 계속 사용합니다.',
   cfTitle:'데이터 가져오기 확인', cfSub:f=>`파일: <b>${f}</b><br>아래 비교 내용을 확인한 후 OK를 누르면 대시보드 데이터가 교체됩니다.`,
   cfItem:'항목', cfBefore:'변경 전', cfAfter:'변경 후',
@@ -556,7 +568,7 @@ function slice(){
 }
 
 /* ================= INIT ================= */
-function init(){
+async function init(){
   const ls=document.getElementById('langSel');
   ls.value=LANG;
   ls.onchange=()=>{LANG=ls.value;document.documentElement.lang=LANG;buildControls();paint();};
@@ -572,8 +584,10 @@ function init(){
     fi.addEventListener('change',go); fi.addEventListener('input',go);
   }
   addEventListener('resize',()=>{clearTimeout(window.__rz);window.__rz=setTimeout(paint,180);});
-  const av=monthsAvail(); M0=av[0]; M1=av[av.length-1];
+  const av0=monthsAvail(); M0=av0[0]; M1=av0[av0.length-1];
   buildControls(); paint();
+  const ok=await loadRemote();
+  if(ok){ buildControls(); paint(); }
 }
 
 function buildControls(){
@@ -585,6 +599,9 @@ function buildControls(){
   document.getElementById('labTo').textContent=t.labTo;
   document.getElementById('labData').textContent=t.labData;
   document.getElementById('impTxt').textContent=t.imp;
+  document.getElementById('srcLine').innerHTML=
+    SRC.mode==='remote' ? t.srcLive(SRC.when?dLabel(`${SRC.when.getFullYear()}-${pad2(SRC.when.getMonth()+1)}-${pad2(SRC.when.getDate())}`):'')
+    : SRC.mode==='preview' ? t.srcPreview : t.srcEmbedded;
   document.getElementById('printTxt').textContent=t.print;
   document.getElementById('themeTxt').textContent=
     document.documentElement.getAttribute('data-theme')==='dark'?t.light:t.dark;
@@ -1104,48 +1121,74 @@ function confirmImport(file, before, after){
   });
 }
 
+async function parseWorkbook(ab, fname){
+  const z=await unzip(ab);
+  const shared=[];
+  if(z['xl/sharedStrings.xml']){
+    const sd=new DOMParser().parseFromString(z['xl/sharedStrings.xml'],'application/xml');
+    sd.querySelectorAll('sst > si').forEach(si=>shared.push([...si.querySelectorAll('t')].map(t=>t.textContent).join('')));
+  }
+  const wb=new DOMParser().parseFromString(z['xl/workbook.xml'],'application/xml');
+  const rels=new DOMParser().parseFromString(z['xl/_rels/workbook.xml.rels'],'application/xml');
+  const relMap={}; rels.querySelectorAll('Relationship').forEach(r=>relMap[r.getAttribute('Id')]=r.getAttribute('Target').replace(/^\/?xl\//,'').replace(/^\.\.\//,''));
+  const found={}, names=[];
+  for(const sh of wb.querySelectorAll('sheets > sheet')){
+    const nm=sh.getAttribute('name');
+    const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const target=relMap[rid]; if(!target) continue;
+    const xml=z['xl/'+target]; if(!xml) continue;
+    let cxml=null;
+    const rp='xl/'+target.replace(/([^/]+)$/,'_rels/$1.rels');
+    if(z[rp]){
+      const rr=new DOMParser().parseFromString(z[rp],'application/xml');
+      for(const r of rr.querySelectorAll('Relationship')){
+        const tg=r.getAttribute('Target')||'';
+        if(/comments\d*\.xml$/.test(tg)){ const cp='xl/'+tg.replace(/^\.\.\//,''); if(z[cp]) cxml=z[cp]; }
+      }
+    }
+    const parsed=parseSheet(xml, shared, cxml);
+    if(parsed && parsed.dates.length){ parsed.file=fname; found[nm]=parsed; names.push(nm); }
+  }
+  return {found, names:[...names].sort()};
+}
+
+function applyDatasets(found, ordered){
+  Object.keys(DATASETS).forEach(k=>delete DATASETS[k]);
+  ordered.forEach(n=>DATASETS[n]=found[n]);
+  YEAR=ordered[ordered.length-1];
+  indexEvents();
+  if(!D().series[ENT]) ENT = D().series['SHI']?'SHI':Object.keys(D().series)[0];
+  const av=monthsAvail(); M0=av[0]; M1=av[av.length-1];
+}
+
+/* auto-load data.xlsx published next to this page */
+let SRC={mode:'embedded', when:null};
+async function loadRemote(){
+  try{
+    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),12000);
+    const r=await fetch('data.xlsx',{cache:'no-store',signal:ctl.signal});
+    clearTimeout(to);
+    if(!r.ok) return false;
+    const lm=r.headers.get('last-modified');
+    const {found,names}=await parseWorkbook(await r.arrayBuffer(),'data.xlsx');
+    if(!names.length) return false;
+    applyDatasets(found,names);
+    SRC={mode:'remote', when: lm?new Date(lm):null};
+    return true;
+  }catch(e){ return false; }
+}
+
 async function importXlsx(file){
   toast(T().impWait);
   try{
-    const z=await unzip(await file.arrayBuffer());
-    const shared=[];
-    if(z['xl/sharedStrings.xml']){
-      const sd=new DOMParser().parseFromString(z['xl/sharedStrings.xml'],'application/xml');
-      sd.querySelectorAll('sst > si').forEach(si=>shared.push([...si.querySelectorAll('t')].map(t=>t.textContent).join('')));
-    }
-    const wb=new DOMParser().parseFromString(z['xl/workbook.xml'],'application/xml');
-    const rels=new DOMParser().parseFromString(z['xl/_rels/workbook.xml.rels'],'application/xml');
-    const relMap={}; rels.querySelectorAll('Relationship').forEach(r=>relMap[r.getAttribute('Id')]=r.getAttribute('Target').replace(/^\/?xl\//,'').replace(/^\.\.\//,''));
-    const found={}, names=[];
-    for(const sh of wb.querySelectorAll('sheets > sheet')){
-      const nm=sh.getAttribute('name');
-      const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
-      const target=relMap[rid]; if(!target) continue;
-      const path='xl/'+target; const xml=z[path]; if(!xml) continue;
-      let cxml=null;
-      const rp='xl/'+target.replace(/([^/]+)$/,'_rels/$1.rels');
-      if(z[rp]){
-        const rr=new DOMParser().parseFromString(z[rp],'application/xml');
-        for(const r of rr.querySelectorAll('Relationship')){
-          const tg=r.getAttribute('Target')||'';
-          if(/comments\d*\.xml$/.test(tg)){ const cp='xl/'+tg.replace(/^\.\.\//,''); if(z[cp]) cxml=z[cp]; }
-        }
-      }
-      const parsed=parseSheet(xml, shared, cxml);
-      if(parsed && parsed.dates.length){ parsed.file=file.name; found[nm]=parsed; names.push(nm); }
-    }
-    if(!names.length){ toast(T().impNone,true); return; }
-    const ordered=[...names].sort();
+    const {found,names:ordered}=await parseWorkbook(await file.arrayBuffer(), file.name);
+    if(!ordered.length){ toast(T().impNone,true); return; }
     const before=summarize(DATASETS,ENT), after=summarize(found,ENT);
     document.getElementById('toast').className='';
     const okGo=await confirmImport(file, before, after);
     if(!okGo){ toast(T().impCancel); return; }
-    Object.keys(DATASETS).forEach(k=>delete DATASETS[k]);
-    ordered.forEach(n=>DATASETS[n]=found[n]);
-    YEAR=ordered[ordered.length-1];
-    indexEvents();
-    if(!D().series[ENT]) ENT = D().series['SHI']?'SHI':Object.keys(D().series)[0];
-    const av=monthsAvail(); M0=av[0]; M1=av[av.length-1];
+    applyDatasets(found,ordered);
+    SRC={mode:'preview', when:null};
     buildControls(); paint();
     toast(T().impOk(file.name,ordered.length,ordered.join(', ')));
   }catch(err){ console.error(err); toast(T().impErr(err.message||err),true); }
